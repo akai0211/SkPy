@@ -42,7 +42,8 @@ class SkypeChat(SkypeObj):
         """
         url = "{0}/users/ME/conversations/{1}/messages".format(self.skype.conn.msgsHost, self.id)
         params = {"startTime": 0,
-                  "view": "msnp24Equivalent",
+                  "view": "supportsExtendedHistory|msnp24Equivalent",
+                  "pageSize": 200,
                   "targetType": "Passport|Skype|Lync|Thread"}
         resp = self.skype.conn.syncStateCall("GET", url, params, auth=SkypeConnection.Auth.RegToken).json()
         return [SkypeMsg.fromRaw(self.skype, json) for json in resp.get("messages", [])]
@@ -415,7 +416,10 @@ class SkypeGroupChat(SkypeChat):
 
         If public joining is disabled, you may need to be re-invited in order to return.
         """
-        self.removeMember(self.skype.userId)
+        try:
+            self.removeMember(self.skype.userId)
+        except Exception:
+            pass
 
 
 class SkypeChats(SkypeObjs):
@@ -442,13 +446,15 @@ class SkypeChats(SkypeObjs):
         """
         url = "{0}/users/ME/conversations".format(self.skype.conn.msgsHost)
         params = {"startTime": 0,
-                  "view": "msnp24Equivalent",
+                  "view": "supportsExtendedHistory|msnp24Equivalent",
+                  "pageSize": 200,
                   "targetType": "Passport|Skype|Lync|Thread"}
         resp = self.skype.conn.syncStateCall("GET", url, params, auth=SkypeConnection.Auth.RegToken).json()
         chats = {}
         for json in resp.get("conversations", []):
             cls = SkypeSingleChat
             if "threadProperties" in json:
+                # Add exception handling
                 info = self.skype.conn("GET", "{0}/threads/{1}".format(self.skype.conn.msgsHost, json.get("id")),
                                        auth=SkypeConnection.Auth.RegToken,
                                        params={"view": "msnp24Equivalent"}).json()

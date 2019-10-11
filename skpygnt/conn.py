@@ -216,7 +216,8 @@ class SkypeConnection(SkypeObj):
         if resp.status_code not in codes:
             if resp.status_code == 429:
                 raise SkypeAuthException("Auth rate limit exceeded", resp)
-            raise SkypeApiException("{0} response from {1} {2}".format(resp.status_code, method, url), resp)
+            # raise SkypeApiException("{0} response from {1} {2}".format(resp.status_code, method, url), resp)
+            pass
         return resp
 
     def syncStateCall(self, method, url, params={}, **kwargs):
